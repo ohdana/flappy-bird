@@ -35,6 +35,7 @@ class Game:
         font_path = join('graphics', 'font', 'BD_Cartoon_Shout.ttf')
         self.font = pygame.font.Font(font_path, 30)
         self.score = 0
+        self.start_offset = 0
         
         # menu
         self.menu_surf = pygame.image.load(join('graphics', 'ui', 'menu.png')).convert_alpha()
@@ -51,7 +52,7 @@ class Game:
             
     def display_score(self):
         if self.active:
-        	self.score = pygame.time.get_ticks() // 1000
+        	self.score = (pygame.time.get_ticks() - self.start_offset) // 1000
         	y = WINDOW_HEIGHT / 10
         else:
             y = WINDOW_HEIGHT / 2 + self.menu_rect.height / 1.5
@@ -80,6 +81,7 @@ class Game:
                     else:
                         self.plane = Plane(self.all_sprites, self.scale_factor / 1.7)
                         self.active = True
+                        self.start_offset = pygame.time.get_ticks()
                     
                 if event.type == self.obstacle_timer and self.active:
                     Obstacle([self.all_sprites, self.collision_sprites], self.scale_factor)
