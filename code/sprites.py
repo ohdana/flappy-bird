@@ -31,6 +31,7 @@ class BG(pygame.sprite.Sprite):
 class Ground(pygame.sprite.Sprite):
     def __init__(self, groups, scale_factor):
         super().__init__(groups)
+        self.sprite_type = 'ground'
         
         # image
         ground_surf = pygame.image.load(join('graphics', 'environment', 'ground.png')).convert_alpha()
@@ -105,6 +106,7 @@ class Plane(pygame.sprite.Sprite):
 class Obstacle(pygame.sprite.Sprite):
     def __init__(self, groups, scale_factor):
         super().__init__(groups)
+        self.sprite_type = 'obstacle'
         
         orientation = choice(('up', 'down'))
         surf = pygame.image.load(join('graphics', 'obstacles', f'{choice((0,1))}.png')).convert_alpha()
