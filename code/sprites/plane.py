@@ -8,11 +8,11 @@ class Plane(pygame.sprite.Sprite):
         self.direction = 0
         self.frame_index = 0
         
-        self.__set_image(scale_factor)
-        self.__set_rect()
-        self.__set_pos()
-        self.__set_mask()
-        self.__set_audio()
+        self.__init_image(scale_factor)
+        self.__init_rect()
+        self.__init_pos()
+        self.__init_mask()
+        self.__init_audio()
     
     def update(self, dt):
         self.__apply_gravity(dt)
@@ -23,20 +23,20 @@ class Plane(pygame.sprite.Sprite):
         self.direction = -JUMP_SIZE
         self.jump_sound.play()
         
-    def __set_image(self, scale_factor):
+    def __init_image(self, scale_factor):
         self.__load_frames(scale_factor)
         self.image = self.frames[self.frame_index]
     
-    def __set_rect(self):
+    def __init_rect(self):
         self.rect = self.image.get_rect(midleft = (WINDOW_WIDTH / 20, WINDOW_HEIGHT / 2))
     
-    def __set_pos(self):
+    def __init_pos(self):
         self.pos = pygame.math.Vector2(self.rect.topleft)
     
-    def __set_mask(self):
+    def __init_mask(self):
         self.mask = pygame.mask.from_surface(self.image)
     
-    def __set_audio(self):
+    def __init_audio(self):
         self.jump_sound = pygame.mixer.Sound(join('sounds', 'jump.wav'))
         self.jump_sound.set_volume(0.1)
         
@@ -60,4 +60,4 @@ class Plane(pygame.sprite.Sprite):
     
     def __rotate(self):
         self.image = pygame.transform.rotozoom(self.image, -self.direction * 0.06, 1)
-        self.__set_mask()
+        self.__init_mask()
