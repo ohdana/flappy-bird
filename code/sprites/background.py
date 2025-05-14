@@ -10,17 +10,15 @@ class BG(pygame.sprite.Sprite):
        
     def update(self, dt):
         self.__move_left(dt)
-        
-        is_out_of_sight = self.__check_if_out_of_sight()
-        if is_out_of_sight:
-            self.kill()
     
     def __move_left(self, dt):
         self.pos.x -= BACKGROUND_SPEED * dt
+        self.__loop_background()
         self.rect.x = round(self.pos.x)
             
-    def __check_if_out_of_sight(self):
-        return self.rect.right <= 0
+    def __loop_background(self):
+        if self.rect.centerx <= 0:
+            self.pos.x = 0
     
     def __set_image(self, scale_factor):
         surf = pygame.image.load(join('graphics', 'environment', 'background.png')).convert()
