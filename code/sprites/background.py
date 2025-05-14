@@ -13,10 +13,10 @@ class BG(pygame.sprite.Sprite):
     
     def __move_left(self, dt):
         self.pos.x -= BACKGROUND_SPEED * dt
-        self.__loop_background()
+        self.__loop_image()
         self.rect.x = round(self.pos.x)
             
-    def __loop_background(self):
+    def __loop_image(self):
         if self.rect.centerx <= 0:
             self.pos.x = 0
     
