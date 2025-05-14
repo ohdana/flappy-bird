@@ -4,23 +4,37 @@ from os.path import join
 class BG(pygame.sprite.Sprite):
     def __init__(self, groups, scale_factor):
         super().__init__(groups)
-        bg_image = pygame.image.load(join('graphics', 'environment', 'background.png')).convert()
-        
-        full_height = bg_image.get_height() * scale_factor
-        full_width = bg_image.get_width() * scale_factor
-        full_sized_image = pygame.transform.scale(bg_image, (full_width, full_height))
-        
-        self.image = pygame.Surface((full_width * 2, full_height))
-        self.image.blit(full_sized_image, (0,0))
-        self.image.blit(full_sized_image, (full_width,0))
-        
-        self.rect = self.image.get_rect(topleft = (0,0))
-        self.pos = pygame.math.Vector2(self.rect.topleft)
-        
+        self.__set_image(scale_factor)
+        self.__set_rect()
+        self.__set_pos()
+       
     def update(self, dt):
-        self.pos.x -= 300 * dt
+        self.__move_left(dt)
         
-        if self.rect.centerx <= 0:
-            self.pos.x = 0
-            
+        is_out_of_sight = self.__check_if_out_of_sight()
+        if is_out_of_sight:
+            self.kill()
+    
+    def __move_left(self, dt):
+        self.pos.x -= BACKGROUND_SPEED * dt
         self.rect.x = round(self.pos.x)
+            
+    def __check_if_out_of_sight(self):
+        return self.rect.right <= 0
+    
+    def __set_image(self, scale_factor):
+        surf = pygame.image.load(join('graphics', 'environment', 'background.png')).convert()
+        
+        scaled_height = surf.get_height() * scale_factor
+        scaled_width = surf.get_width() * scale_factor
+        scaled_surf = pygame.transform.scale(surf, (scaled_width, scaled_height))
+
+        self.image = pygame.Surface((scaled_width * 2, scaled_height))
+        self.image.blit(scaled_surf, (0,0))
+        self.image.blit(scaled_surf, (scaled_width,0))
+        
+    def __set_rect(self):
+        self.rect = self.image.get_rect(topleft = (0,0))
+    
+    def __set_pos(self):
+        self.pos = pygame.math.Vector2(self.rect.topleft)
