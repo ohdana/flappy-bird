@@ -5,28 +5,42 @@ from os import walk
 class Plane(pygame.sprite.Sprite):
     def __init__(self, groups, scale_factor):
         super().__init__(groups)
-        
-        # image
-        self.import_frames(scale_factor)
-        self.frame_index = 0
-        self.image = self.frames[self.frame_index]
-        
-        # position
-        self.rect = self.image.get_rect(midleft = (WINDOW_WIDTH / 20, WINDOW_HEIGHT / 2))
-        self.pos = pygame.math.Vector2(self.rect.topleft)
-        
-        # movement
-        self.gravity = 600
         self.direction = 0
+        self.frame_index = 0
         
-        # masks
+        self.__set_image(scale_factor)
+        self.__set_rect()
+        self.__set_pos()
+        self.__set_mask()
+        self.__set_audio()
+    
+    def update(self, dt):
+        self.__apply_gravity(dt)
+        self.__animate(dt)
+        self.__rotate()
+        
+    def jump(self):
+        self.direction = -JUMP_SIZE
+        self.jump_sound.play()
+        
+    def __set_image(self, scale_factor):
+        self.__load_frames(scale_factor)
+        self.image = self.frames[self.frame_index]
+    
+    def __set_rect(self):
+        self.rect = self.image.get_rect(midleft = (WINDOW_WIDTH / 20, WINDOW_HEIGHT / 2))
+    
+    def __set_pos(self):
+        self.pos = pygame.math.Vector2(self.rect.topleft)
+    
+    def __set_mask(self):
         self.mask = pygame.mask.from_surface(self.image)
-        
-        # sound
+    
+    def __set_audio(self):
         self.jump_sound = pygame.mixer.Sound(join('sounds', 'jump.wav'))
         self.jump_sound.set_volume(0.1)
         
-    def import_frames(self, scale_factor):
+    def __load_frames(self, scale_factor):
         self.frames = []
         for folder_path, _, file_names in walk(join('graphics', 'plane')):
             for file_name in file_names:
@@ -34,26 +48,16 @@ class Plane(pygame.sprite.Sprite):
                 image = pygame.image.load(full_path).convert_alpha()
                 scaled_image = pygame.transform.scale(image, pygame.math.Vector2(image.get_size()) * scale_factor)
                 self.frames.append(scaled_image)
-    
-    def update(self, dt):
-        self.apply_gravity(dt)
-        self.animate(dt)
-        self.rotate()
         
-    def apply_gravity(self, dt):
-        self.direction += self.gravity * dt
+    def __apply_gravity(self, dt):
+        self.direction += GRAVITY_SPEED * dt
         self.pos.y += self.direction * dt
         self.rect.y = round(self.pos.y)
-        
-    def jump(self):
-        self.direction = -400
-        self.jump_sound.play()
     
-    def animate(self, dt):
-        self.frame_index += 10 * dt
+    def __animate(self, dt):
+        self.frame_index += PLANE_ANIMATION_SPEED * dt
         self.image = self.frames[int(self.frame_index) % len(self.frames)]
     
-    def rotate(self):
-        rotated_plane = pygame.transform.rotozoom(self.image, -self.direction * 0.06, 1)
-        self.image = rotated_plane
-        self.mask = pygame.mask.from_surface(self.image)
+    def __rotate(self):
+        self.image = pygame.transform.rotozoom(self.image, -self.direction * 0.06, 1)
+        self.__set_mask()
