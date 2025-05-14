@@ -1,7 +1,9 @@
-import pygame, sys, time
 from os.path import join
 from settings import *
-from sprites import BG, Ground, Plane, Obstacle
+from sprites.background import BG
+from sprites.ground import Ground
+from sprites.plane import Plane
+from sprites.obstacle import Obstacle
 
 class Game:
     def __init__(self):
