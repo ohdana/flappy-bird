@@ -22,43 +22,65 @@ class Game:
         self.__init_score()
     
     def run(self):
-        last_time = time.time()
+        self.__init_prev_frame_time()
         while True:
+            self.__check_for_events()
+            self.__redraw_game_window()
             
-            # delta time
-            dt = time.time() - last_time
-            last_time = time.time()
-            
-            # event loop
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                    
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    if self.active:
-                    	self.plane.jump()
-                    else:
-                        self.plane = Plane(self.all_sprites, self.scale_factor / 1.7)
-                        self.active = True
-                        self.start_offset = pygame.time.get_ticks()
-                    
-                if event.type == self.obstacle_timer and self.active:
-                    Obstacle([self.all_sprites, self.collision_sprites], self.scale_factor)
-
-            # game logic 
-            self.display_surface.fill('black')
-            self.all_sprites.update(dt)
-            self.all_sprites.draw(self.display_surface)
-            self.__display_score()
-            
-            if self.active:
+            if self.is_active:
                 self.__check_for_collisions()
             else:
-                self.display_surface.blit(self.menu_surf, self.menu_rect)
+                self.__show_menu()
             
-            pygame.display.update()
-            self.clock.tick(FRAMERATE)
+            self.__handle_frame_tick()
+            
+    def __check_for_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.__handle_quit()
+                    
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                self.__handle_mouse_button_down()
+                    
+            if event.type == self.obstacle_timer:
+                self.__handle_obstacle_timer()
+            
+    def __handle_frame_tick(self):
+        pygame.display.update()
+        self.clock.tick(FRAMERATE)
+            
+    def __handle_obstacle_timer(self):
+        if self.is_active:
+            self.__create_new_obstacle()
+    
+    def __handle_quit(self):
+        pygame.quit()
+        sys.exit()
+            
+    def __create_new_obstacle(self):
+        Obstacle([self.all_sprites, self.collision_sprites], self.scale_factor)
+            
+    def __show_menu(self):
+        self.display_surface.blit(self.menu_surf, self.menu_rect)
+    
+    def __redraw_game_window(self):
+        self.display_surface.fill('black')
+        dt = time.time() - self.prev_frame_time
+        self.all_sprites.update(dt)
+        self.all_sprites.draw(self.display_surface)
+        self.__display_score()
+        self.prev_frame_time = time.time()
+            
+    def __handle_mouse_button_down(self):
+        if self.is_active:
+        	self.plane.jump()
+        else:
+            self.__start_new_game()
+    
+    def __start_new_game(self):
+        self.plane = Plane(self.all_sprites, self.scale_factor / 1.7)
+        self.is_active = True
+        self.start_offset = pygame.time.get_ticks()
         
     def __check_for_collisions(self):
         if pygame.sprite.spritecollide(self.plane, self.collision_sprites, False, pygame.sprite.collide_mask)\
@@ -66,11 +88,11 @@ class Game:
             for sprite in self.collision_sprites.sprites():
                 if isinstance(sprite, Obstacle):
                 	sprite.kill()
-            self.active = False
+            self.is_active = False
             self.plane.kill()
             
     def __display_score(self):
-        if self.active:
+        if self.is_active:
         	self.score = (pygame.time.get_ticks() - self.start_offset) // 1000
         	y = WINDOW_HEIGHT / 10
         else:
@@ -80,10 +102,13 @@ class Game:
         score_rect = score_surf.get_rect(midtop = (WINDOW_WIDTH / 2, y))
         self.display_surface.blit(score_surf, score_rect)
         
+    def __init_prev_frame_time(self):
+        self.prev_frame_time = time.time()
+        
     def __init_game_window(self):
         self.display_surface = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pygame.display.set_caption('Flappy Bird')
-        self.active = True
+        self.is_active = True
         
     def __init_clock(self):
         self.clock = pygame.time.Clock()
