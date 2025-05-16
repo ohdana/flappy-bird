@@ -25,6 +25,7 @@ class Game:
         self.__init_prev_frame_time()
         while True:
             self.__check_for_events()
+            self.__handle_user_input()
             self.__redraw_game_window()
             
             if self.is_active:
@@ -39,11 +40,13 @@ class Game:
             if event.type == pygame.QUIT:
                 self.__handle_quit()
                     
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                self.__handle_mouse_button_down()
-                    
             if event.type == self.obstacle_timer:
                 self.__handle_obstacle_timer()
+                
+    def __handle_user_input(self):
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_SPACE]:
+            self.__handle_space_pressed()
             
     def __handle_frame_tick(self):
         pygame.display.update()
@@ -71,9 +74,9 @@ class Game:
         self.__display_score()
         self.prev_frame_time = time.time()
             
-    def __handle_mouse_button_down(self):
+    def __handle_space_pressed(self):
         if self.is_active:
-        	self.plane.jump()
+            self.plane.jump()
         else:
             self.__start_new_game()
     
