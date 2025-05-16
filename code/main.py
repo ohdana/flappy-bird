@@ -14,12 +14,12 @@ class Game:
         self.__init_sprites()
         self.__init_scaling()
         self.__init_scenery()
-        self.__init_plane()
         self.__init_timer()
         self.__init_font()
         self.__init_menu()
         self.__init_audio()
         self.__init_score()
+        self.__start_new_game()
     
     def run(self):
         self.__init_prev_frame_time()
@@ -72,6 +72,7 @@ class Game:
         self.all_sprites.update(dt)
         self.all_sprites.draw(self.display_surface)
         self.__display_score()
+        self.__display_lives()
         self.prev_frame_time = time.time()
             
     def __handle_space_pressed(self):
@@ -81,18 +82,36 @@ class Game:
             self.__start_new_game()
     
     def __start_new_game(self):
-        self.plane = Plane(self.all_sprites, self.scale_factor / 1.7)
+        self.__init_plane()
         self.is_active = True
         self.start_offset = pygame.time.get_ticks()
+        self.lives = N_OF_LIVES
         
     def __check_for_collisions(self):
-        if pygame.sprite.spritecollide(self.plane, self.collision_sprites, False, pygame.sprite.collide_mask)\
-        or self.plane.rect.top <= 0:
-            for sprite in self.collision_sprites.sprites():
-                if isinstance(sprite, Obstacle):
-                	sprite.kill()
-            self.is_active = False
+        collided_sprites = pygame.sprite.spritecollide(self.plane, self.collision_sprites, False, pygame.sprite.collide_mask)
+        if collided_sprites or self.plane.rect.top <= 0:
+            if not self.collision_handled:
+                for sprite in collided_sprites:
+                    if isinstance(sprite, Obstacle):
+                    	sprite.kill()
+                self.__handle_lost_life()
+                self.collision_handled = True
+        else:
+            self.collision_handled = False
+            
+    def __handle_lost_life(self):
+        self.lives -= 1
+        
+        is_out_of_lives = self.lives == 0
+        if is_out_of_lives:
+            self.__end_game()
+        else:
             self.plane.kill()
+            self.__init_plane()
+            
+    def __end_game(self):
+        self.is_active = False
+        self.plane.kill()
             
     def __display_score(self):
         if self.is_active:
@@ -105,13 +124,33 @@ class Game:
         score_rect = score_surf.get_rect(midtop = (WINDOW_WIDTH / 2, y))
         self.display_surface.blit(score_surf, score_rect)
         
+    def __display_lives(self):
+        if self.is_active:
+            heart_active_surf = pygame.image.load(join('graphics', 'heart', 'heart_active.png')).convert_alpha()
+            heart_dead_surf = pygame.image.load(join('graphics', 'heart', 'heart_dead.png')).convert_alpha()
+            heart_width = heart_active_surf.get_width()
+            
+            lives_panel_width = heart_width * N_OF_LIVES
+            lives_panel_height = heart_active_surf.get_height()
+            lives_surf = pygame.Surface((lives_panel_width, lives_panel_height), pygame.SRCALPHA)
+            for i in range(self.lives):
+                x = i * heart_width
+                heart_rect = heart_active_surf.get_rect(topleft = (i * heart_width, 0))
+                lives_surf.blit(heart_active_surf, heart_rect)
+                
+            for i in range(N_OF_LIVES - self.lives):
+                heart_rect = heart_dead_surf.get_rect(topleft = (heart_width * (self.lives + i), 0))
+                lives_surf.blit(heart_dead_surf, heart_rect)
+                
+            lives_rect = lives_surf.get_rect(topright = (WINDOW_WIDTH - 10, 10))
+            self.display_surface.blit(lives_surf, lives_rect)
+        
     def __init_prev_frame_time(self):
         self.prev_frame_time = time.time()
         
     def __init_game_window(self):
         self.display_surface = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         pygame.display.set_caption('Flappy Bird')
-        self.is_active = True
         
     def __init_clock(self):
         self.clock = pygame.time.Clock()
@@ -150,7 +189,6 @@ class Game:
         
     def __init_score(self):
         self.score = 0
-        self.start_offset = 0
 
 if __name__ == '__main__':
     game = Game()

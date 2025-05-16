@@ -5,8 +5,6 @@ from os import walk
 class Plane(pygame.sprite.Sprite):
     def __init__(self, groups, scale_factor):
         super().__init__(groups)
-        self.direction = 0
-        self.frame_index = 0
         
         self.__init_image(scale_factor)
         self.__init_rect()
@@ -24,6 +22,7 @@ class Plane(pygame.sprite.Sprite):
         self.jump_sound.play()
         
     def __init_image(self, scale_factor):
+        self.frame_index = 0
         self.__load_frames(scale_factor)
         self.image = self.frames[self.frame_index]
     
@@ -31,6 +30,7 @@ class Plane(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(midleft = (WINDOW_WIDTH / 20, WINDOW_HEIGHT / 2))
     
     def __init_pos(self):
+        self.direction = 0
         self.pos = pygame.math.Vector2(self.rect.topleft)
     
     def __init_mask(self):
